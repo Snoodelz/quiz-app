@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Quiz {
+  id          Int           @id @default(autoincrement())
+  title       String        @db.VarChar(255)
+  description String?
+  createdAt   DateTime      @default(now())
+  questions   Question[]
+  attempts    QuizAttempt[]
+}
+
+model Question {
+  id      Int      @id @default(autoincrement())
+  text    String
+  quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId  Int
+  options Option[]
+}
+
+model Option {
+  id         Int        @id @default(autoincrement())
+  text       String
+  isCorrect  Boolean    @default(false)
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId Int
+  responses  Response[]
+}
+
+model QuizAttempt {
+  id         Int        @id @default(autoincrement())
+  quiz       Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId     Int
+  startedAt  DateTime   @default(now())
+  finishedAt DateTime?
+  responses  Response[]
+}
+
+model Response {
+  id        Int         @id @default(autoincrement())
+  attempt   QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  attemptId Int
+  option    Option      @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId  Int
+}
